@@ -33,19 +33,38 @@ class UpdatePayrollRequest extends FormRequest
                 'numeric',
                 'min:0',
                 'max:31',
+                'multiple_of:0.5',
             ],
 
             'lop_days' => [
                 'nullable',
-                'integer',
+                'numeric',
                 'min:0',
                 'max:31',
+                'multiple_of:0.5',
             ],
 
             'status' => [
                 'nullable',
                 'in:Draft,Generated',
             ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'basic_salary.required' =>
+                'Basic Salary is required.',
+
+            'basic_salary.min' =>
+                'Basic Salary cannot be negative.',
+
+            'leave_days.multiple_of' =>
+                'Leave Days must be entered in half-day increments such as 0.5, 1, 1.5 or 2.',
+
+            'lop_days.multiple_of' =>
+                'LOP Days must be entered in half-day increments such as 0.5, 1, 1.5 or 2.',
         ];
     }
 }

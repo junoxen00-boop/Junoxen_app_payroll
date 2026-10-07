@@ -548,7 +548,7 @@
                         <h6 class="fw-bold mt-4">Attendance / Leave</h6>
                         <table class="table table-sm">
                             <tr><td>Leave Days</td><td class="text-end">{{ number_format((float) ($payroll->leave_days ?? 0), 2) }}</td></tr>
-                            <tr><td>LOP Days</td><td class="text-end">{{ (int) ($payroll->lop_days ?? 0) }}</td></tr>
+                            <tr><td>LOP Days</td><td class="text-end">{{ number_format((float) ($payroll->lop_days ?? 0), 2) }}</td></tr>
                             <tr><td>Paid Days</td><td class="text-end">{{ number_format((float) ($payroll->paid_days ?? 0), 2) }}</td></tr>
                         </table>
                     </div>
@@ -557,7 +557,6 @@
                         <h6 class="fw-bold">Deductions</h6>
                         <table class="table table-sm">
                             <tr><td>Professional Tax</td><td class="text-end">₹{{ number_format((float) $payroll->professional_tax, 2) }}</td></tr>
-                            <tr><td>Provident Fund</td><td class="text-end">₹{{ number_format((float) $payroll->pf_deduction, 2) }}</td></tr>
                             <tr><td>LOP Deduction</td><td class="text-end">₹{{ number_format((float) ($payroll->lop_deduction ?? 0), 2) }}</td></tr>
                             <tr class="fw-bold"><td>Total Deductions</td><td class="text-end">₹{{ number_format((float) $payroll->total_deductions, 2) }}</td></tr>
                         </table>

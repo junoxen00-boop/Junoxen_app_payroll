@@ -15,8 +15,12 @@ class PayrollService
 {
     public function __construct(
         private PayrollStatutoryService $statutoryService
-    ) {}
+    ) {
+    }
 
+    /**
+     * Calculate payroll.
+     */
     public function calculate(
         array $input,
         int $month,
@@ -28,11 +32,15 @@ class PayrollService
             1
         );
 
-        $periodEnd =
-            $period->copy()->endOfMonth();
-
         $daysInMonth =
             $period->daysInMonth;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Earnings
+        |--------------------------------------------------------------------------
+        */
 
         $basicSalary =
             $this->toCents(
@@ -45,40 +53,80 @@ class PayrollService
             );
 
         $gross =
-            $basicSalary + $bonus;
+            $basicSalary
+            + $bonus;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Leave Days
+        |--------------------------------------------------------------------------
+        |
+        | Hundredths are used so half days are exact:
+        |
+        | 0.5 = 50
+        | 1   = 100
+        | 1.5 = 150
+        |
+        */
 
         $leaveDaysHundredths =
-            $this->toHundredths(
-                $input['leave_days'] ?? 0
+            max(
+                0,
+                $this->toHundredths(
+                    $input['leave_days'] ?? 0
+                )
             );
 
-        $lopDays = max(
-            0,
-            (int) ($input['lop_days'] ?? 0)
-        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOP Days
+        |--------------------------------------------------------------------------
+        */
 
         $lopDaysHundredths =
-            $lopDays * 100;
+            max(
+                0,
+                $this->toHundredths(
+                    $input['lop_days'] ?? 0
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Leave Days
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $leaveDaysHundredths >
-            $daysInMonth * 100
+            ($daysInMonth * 100)
         ) {
             throw ValidationException::withMessages([
                 'leave_days' =>
-                    "Leave days cannot exceed {$daysInMonth} days for the selected month.",
+                    "Leave Days cannot exceed {$daysInMonth} days for the selected month.",
             ]);
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate LOP Days
+        |--------------------------------------------------------------------------
+        */
+
         if (
-            $lopDays >
-            $daysInMonth
+            $lopDaysHundredths >
+            ($daysInMonth * 100)
         ) {
             throw ValidationException::withMessages([
                 'lop_days' =>
-                    "LOP days cannot exceed {$daysInMonth} days for the selected month.",
+                    "LOP Days cannot exceed {$daysInMonth} days for the selected month.",
             ]);
         }
+
 
         if (
             $lopDaysHundredths >
@@ -86,42 +134,99 @@ class PayrollService
         ) {
             throw ValidationException::withMessages([
                 'lop_days' =>
-                    'LOP days cannot exceed total leave days.',
+                    'LOP Days cannot exceed total Leave Days.',
             ]);
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOP Deduction
+        |--------------------------------------------------------------------------
+        */
 
         $lopDeduction =
             $this->calculateLopDeductionCents(
                 $basicSalary,
-                $lopDays,
+                $lopDaysHundredths,
                 $daysInMonth
             );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | PROVIDENT FUND DISABLED
+        |--------------------------------------------------------------------------
+        |
+        | PF must not contribute to Total Deductions.
+        |
+        */
+
         $pfDeduction = 0;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Professional Tax
+        |--------------------------------------------------------------------------
+        */
+
         $professionalTax =
             $this->statutoryService
                 ->professionalTaxCents(
                     $gross
                 );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total Deductions
+        |--------------------------------------------------------------------------
+        |
+        | PF is deliberately excluded.
+        |
+        */
+
         $totalDeductions =
-            $pfDeduction
-            + $professionalTax
+            $professionalTax
             + $lopDeduction;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Net Salary
+        |--------------------------------------------------------------------------
+        */
 
         $net =
             $gross
             - $totalDeductions;
 
+
         if ($net < 0) {
             throw ValidationException::withMessages([
                 'lop_days' =>
-                    'Total deductions cannot exceed gross earnings.',
+                    'Total deductions cannot exceed Gross Earnings.',
             ]);
         }
 
-        $paidDays =
-            $daysInMonth - $lopDays;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Paid Days
+        |--------------------------------------------------------------------------
+        */
+
+        $paidDaysHundredths =
+            ($daysInMonth * 100)
+            - $lopDaysHundredths;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Final Result
+        |--------------------------------------------------------------------------
+        */
 
         return [
             'basic_salary' =>
@@ -129,7 +234,8 @@ class PayrollService
                     $basicSalary
                 ),
 
-            'hra' => '0.00',
+            'hra' =>
+                '0.00',
 
             'conveyance_allowance' =>
                 '0.00',
@@ -157,7 +263,9 @@ class PayrollService
                 '0.00',
 
             'lop_days' =>
-                $lopDays,
+                $this->fromHundredths(
+                    $lopDaysHundredths
+                ),
 
             'lop_deduction' =>
                 $this->fromCents(
@@ -166,13 +274,17 @@ class PayrollService
 
             'paid_days' =>
                 $this->fromHundredths(
-                    $paidDays * 100
+                    $paidDaysHundredths
                 ),
 
+            /*
+            |--------------------------------------------------------------------------
+            | PF always zero
+            |--------------------------------------------------------------------------
+            */
+
             'pf_deduction' =>
-                $this->fromCents(
-                    $pfDeduction
-                ),
+                '0.00',
 
             'professional_tax' =>
                 $this->fromCents(
@@ -223,6 +335,10 @@ class PayrollService
         ];
     }
 
+
+    /**
+     * Generate payroll.
+     */
     public function generate(
         Employee $employee,
         int $month,
@@ -241,7 +357,8 @@ class PayrollService
                 $ip
             ) {
                 if (
-                    $employee->status !== 'Active'
+                    $employee->status !==
+                    'Active'
                 ) {
                     throw ValidationException::withMessages([
                         'employee_id' =>
@@ -249,20 +366,22 @@ class PayrollService
                     ]);
                 }
 
+
                 $alreadyExists =
                     Payroll::where(
                         'employee_id',
                         $employee->id
                     )
-                    ->where(
-                        'payroll_month',
-                        $month
-                    )
-                    ->where(
-                        'payroll_year',
-                        $year
-                    )
-                    ->exists();
+                        ->where(
+                            'payroll_month',
+                            $month
+                        )
+                        ->where(
+                            'payroll_year',
+                            $year
+                        )
+                        ->exists();
+
 
                 if ($alreadyExists) {
                     throw ValidationException::withMessages([
@@ -271,6 +390,7 @@ class PayrollService
                     ]);
                 }
 
+
                 $calculated =
                     $this->calculate(
                         $input,
@@ -278,11 +398,14 @@ class PayrollService
                         $year
                     );
 
-                $period = Carbon::create(
-                    $year,
-                    $month,
-                    1
-                );
+
+                $period =
+                    Carbon::create(
+                        $year,
+                        $month,
+                        1
+                    );
+
 
                 $payroll =
                     Payroll::create(
@@ -327,6 +450,7 @@ class PayrollService
                         )
                     );
 
+
                 $this->audit(
                     $payroll,
                     $actor,
@@ -336,11 +460,16 @@ class PayrollService
                     $ip
                 );
 
+
                 return $payroll;
             }
         );
     }
 
+
+    /**
+     * Update payroll.
+     */
     public function update(
         Payroll $payroll,
         array $input,
@@ -350,7 +479,10 @@ class PayrollService
         if (
             in_array(
                 $payroll->status,
-                ['Paid', 'Cancelled'],
+                [
+                    'Paid',
+                    'Cancelled',
+                ],
                 true
             )
         ) {
@@ -359,6 +491,7 @@ class PayrollService
                     'Paid or cancelled payroll cannot be edited.',
             ]);
         }
+
 
         return DB::transaction(
             function () use (
@@ -370,44 +503,42 @@ class PayrollService
                 $old =
                     $payroll->toArray();
 
+
                 $input['basic_salary'] =
                     array_key_exists(
                         'basic_salary',
                         $input
                     )
-                    ? $input['basic_salary']
-                    : $payroll->basic_salary;
+                        ? $input['basic_salary']
+                        : $payroll->basic_salary;
+
 
                 $input['bonus'] =
                     array_key_exists(
                         'bonus',
                         $input
                     )
-                    ? $input['bonus']
-                    : $payroll->bonus;
+                        ? $input['bonus']
+                        : $payroll->bonus;
+
 
                 $input['leave_days'] =
                     array_key_exists(
                         'leave_days',
                         $input
                     )
-                    ? $input['leave_days']
-                    : (
-                        $payroll->leave_days
-                        ?? $payroll->lop_days
-                        ?? 0
-                    );
+                        ? $input['leave_days']
+                        : ($payroll->leave_days ?? 0);
+
 
                 $input['lop_days'] =
                     array_key_exists(
                         'lop_days',
                         $input
                     )
-                    ? $input['lop_days']
-                    : (
-                        $payroll->lop_days
-                        ?? 0
-                    );
+                        ? $input['lop_days']
+                        : ($payroll->lop_days ?? 0);
+
 
                 $calculated =
                     $this->calculate(
@@ -417,6 +548,7 @@ class PayrollService
                         (int)
                         $payroll->payroll_year
                     );
+
 
                 $payroll->update(
                     array_merge(
@@ -429,8 +561,10 @@ class PayrollService
                     )
                 );
 
+
                 $updatedPayroll =
                     $payroll->fresh();
+
 
                 $this->audit(
                     $updatedPayroll,
@@ -441,11 +575,16 @@ class PayrollService
                     $ip
                 );
 
+
                 return $updatedPayroll;
             }
         );
     }
 
+
+    /**
+     * Mark payroll as paid.
+     */
     public function markPaid(
         Payroll $payroll,
         array $input,
@@ -453,7 +592,8 @@ class PayrollService
         ?string $ip = null
     ): Payroll {
         if (
-            $payroll->status === 'Paid'
+            $payroll->status ===
+            'Paid'
         ) {
             throw ValidationException::withMessages([
                 'status' =>
@@ -461,14 +601,17 @@ class PayrollService
             ]);
         }
 
+
         if (
-            $payroll->status === 'Cancelled'
+            $payroll->status ===
+            'Cancelled'
         ) {
             throw ValidationException::withMessages([
                 'status' =>
                     'Cancelled payroll cannot be paid.',
             ]);
         }
+
 
         return DB::transaction(
             function () use (
@@ -479,6 +622,7 @@ class PayrollService
             ) {
                 $old =
                     $payroll->toArray();
+
 
                 PayrollPayment::create([
                     'payroll_id' =>
@@ -505,6 +649,7 @@ class PayrollService
                         $actor->id,
                 ]);
 
+
                 $payroll->update([
                     'status' =>
                         'Paid',
@@ -527,8 +672,10 @@ class PayrollService
                         $actor->id,
                 ]);
 
+
                 $updatedPayroll =
                     $payroll->fresh();
+
 
                 $this->audit(
                     $updatedPayroll,
@@ -539,10 +686,12 @@ class PayrollService
                     $ip
                 );
 
+
                 return $updatedPayroll;
             }
         );
     }
+
 
     public function audit(
         ?Payroll $payroll,
@@ -576,6 +725,7 @@ class PayrollService
         ]);
     }
 
+
     private function nextPayrollNumber(
         int $month,
         int $year
@@ -585,12 +735,14 @@ class PayrollService
                 'payroll_year',
                 $year
             )
-            ->where(
-                'payroll_month',
-                $month
-            )
-            ->lockForUpdate()
-            ->count() + 1;
+                ->where(
+                    'payroll_month',
+                    $month
+                )
+                ->lockForUpdate()
+                ->count()
+            + 1;
+
 
         return sprintf(
             'JNX-PAY-%04d-%02d-%04d',
@@ -600,39 +752,58 @@ class PayrollService
         );
     }
 
+
+    /**
+     * Calculate LOP deduction.
+     *
+     * Basic Salary / Calendar Days x LOP Days
+     */
     private function calculateLopDeductionCents(
         int $basicSalaryCents,
-        int $lopDays,
+        int $lopDaysHundredths,
         int $daysInMonth
     ): int {
         if (
-            $lopDays <= 0
-            || $daysInMonth <= 0
+            $lopDaysHundredths <= 0
+            ||
+            $daysInMonth <= 0
         ) {
             return 0;
         }
 
+
+        $denominator =
+            $daysInMonth * 100;
+
+
         return intdiv(
             (
                 $basicSalaryCents
-                * $lopDays
+                * $lopDaysHundredths
             )
-            + intdiv(
-                $daysInMonth,
+            +
+            intdiv(
+                $denominator,
                 2
             ),
-            $daysInMonth
+            $denominator
         );
     }
 
+
+    /**
+     * Money to paise.
+     */
     private function toCents(
         mixed $value
     ): int {
         $raw =
             trim(
-                (string)
-                ($value ?? '0')
+                (string) (
+                    $value ?? '0'
+                )
             );
+
 
         $negative =
             str_starts_with(
@@ -640,14 +811,20 @@ class PayrollService
                 '-'
             );
 
+
         $normalized =
             preg_replace(
                 '/[^0-9.]/',
                 '',
                 $raw
-            ) ?: '0';
+            )
+            ?: '0';
 
-        [$whole, $fraction] =
+
+        [
+            $whole,
+            $fraction
+        ] =
             array_pad(
                 explode(
                     '.',
@@ -657,6 +834,7 @@ class PayrollService
                 2,
                 ''
             );
+
 
         $fraction =
             substr(
@@ -669,27 +847,34 @@ class PayrollService
                 3
             );
 
+
         $cents =
-            (
-                (int) $whole * 100
-            )
-            + (int) substr(
+            ((int) $whole * 100)
+            +
+            (int) substr(
                 $fraction,
                 0,
                 2
             );
 
+
         if (
-            (int) $fraction[2] >= 5
+            (int) $fraction[2]
+            >= 5
         ) {
             $cents++;
         }
+
 
         return $negative
             ? -$cents
             : $cents;
     }
 
+
+    /**
+     * Paise to two-decimal money.
+     */
     private function fromCents(
         int $cents
     ): string {
@@ -697,44 +882,62 @@ class PayrollService
             $cents < 0;
 
         $absolute =
-            abs($cents);
+            abs(
+                $cents
+            );
+
 
         $formatted =
             intdiv(
                 $absolute,
                 100
             )
-            . '.'
-            . str_pad(
-                (string)
-                ($absolute % 100),
+            .
+            '.'
+            .
+            str_pad(
+                (string) (
+                    $absolute % 100
+                ),
                 2,
                 '0',
                 STR_PAD_LEFT
             );
+
 
         return $negative
             ? '-' . $formatted
             : $formatted;
     }
 
+
+    /**
+     * Decimal leave days to hundredths.
+     */
     private function toHundredths(
         mixed $value
     ): int {
         $raw =
             trim(
-                (string)
-                ($value ?? '0')
+                (string) (
+                    $value ?? '0'
+                )
             );
+
 
         $normalized =
             preg_replace(
                 '/[^0-9.]/',
                 '',
                 $raw
-            ) ?: '0';
+            )
+            ?: '0';
 
-        [$whole, $fraction] =
+
+        [
+            $whole,
+            $fraction
+        ] =
             array_pad(
                 explode(
                     '.',
@@ -744,6 +947,7 @@ class PayrollService
                 2,
                 ''
             );
+
 
         $fraction =
             substr(
@@ -756,25 +960,35 @@ class PayrollService
                 2
             );
 
-        return (
-            (int) $whole * 100
-        ) + (int) $fraction;
+
+        return
+            ((int) $whole * 100)
+            +
+            (int) $fraction;
     }
 
+
+    /**
+     * Hundredths back to decimal days.
+     */
     private function fromHundredths(
         int $value
     ): string {
-        return intdiv(
-            $value,
-            100
-        )
-        . '.'
-        . str_pad(
-            (string)
-            ($value % 100),
-            2,
-            '0',
-            STR_PAD_LEFT
-        );
+        return
+            intdiv(
+                $value,
+                100
+            )
+            .
+            '.'
+            .
+            str_pad(
+                (string) (
+                    $value % 100
+                ),
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
     }
 }
