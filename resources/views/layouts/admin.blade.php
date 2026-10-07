@@ -1,795 +1,1749 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>
-    {{ $pageTitle ?? 'Dashboard' }}
-    @if($appSetting?->company_name)
-        - {{ $appSetting->company_name }}
-    @endif
-</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        {{ $pageTitle ?? 'Dashboard' }}
+
+        @if($appSetting?->company_name)
+            - {{ $appSetting->company_name }}
+        @endif
+    </title>
+
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
 
     <style>
 
-:root{
+        :root {
 
-    --primary:#2563eb;
-    --primary-dark:#1d4ed8;
-    --sidebar:#0f172a;
-    --sidebar-hover:#1e293b;
-    --background:#f8fafc;
-    --card:#ffffff;
-    --text:#0f172a;
-    --muted:#64748b;
-    --border:#e2e8f0;
-    --success:#16a34a;
-    --warning:#f59e0b;
-    --danger:#ef4444;
+            --primary:#2563eb;
+            --primary-dark:#1d4ed8;
+            --sidebar:#0f172a;
+            --sidebar-hover:#1e293b;
+            --background:#f8fafc;
+            --card:#ffffff;
+            --text:#0f172a;
+            --muted:#64748b;
+            --border:#e2e8f0;
+            --success:#16a34a;
+            --warning:#f59e0b;
+            --danger:#ef4444;
 
-}
+        }
 
-*{
-    transition:.25s;
-}
 
-body{
+        * {
+            transition:.25s;
+        }
 
-    background:var(--background);
-    color:var(--text);
-    font-family:
-    Inter,
-    "Segoe UI",
-    sans-serif;
 
-}
+        body {
 
-.admin-wrapper{
+            background:var(--background);
+            color:var(--text);
 
-    display:flex;
-    min-height:100vh;
+            font-family:
+                Inter,
+                "Segoe UI",
+                sans-serif;
 
-}
+        }
 
-.sidebar{
 
-    width:270px;
-    background:linear-gradient(
-        180deg,
-        #0f172a,
-        #111827
-    );
+        .admin-wrapper {
 
-    color:white;
+            display:flex;
+            min-height:100vh;
 
-    position:fixed;
+        }
 
-    left:0;
-    top:0;
-    bottom:0;
 
-    overflow-y:auto;
+        .sidebar {
 
-    box-shadow:
-    0 10px 30px rgba(0,0,0,.15);
+            width:270px;
 
-}
+            background:linear-gradient(
+                180deg,
+                #0f172a,
+                #111827
+            );
 
-.sidebar-brand{
+            color:white;
 
-    padding:28px;
+            position:fixed;
 
-    border-bottom:
-    1px solid rgba(255,255,255,.08);
+            left:0;
+            top:0;
+            bottom:0;
 
-}
+            overflow-y:auto;
 
-.sidebar-brand h5{
+            box-shadow:
+                0 10px 30px rgba(0,0,0,.15);
 
-    font-weight:800;
+        }
 
-    font-size:24px;
 
-    margin:0;
+        .sidebar-brand {
 
-}
+            padding:28px;
 
-.sidebar-menu{
+            border-bottom:
+                1px solid rgba(255,255,255,.08);
 
-    padding:18px;
+        }
 
-}
 
-.sidebar-menu a{
+        .sidebar-brand h5 {
 
-    display:flex;
+            font-weight:800;
+            font-size:24px;
+            margin:0;
 
-    align-items:center;
+        }
 
-    gap:14px;
 
-    width:100%;
+        .sidebar-menu {
 
-    text-decoration:none;
+            padding:18px;
 
-    color:#cbd5e1;
+        }
 
-    padding:14px 18px;
 
-    border-radius:14px;
+        .sidebar-menu a {
 
-    font-weight:600;
+            display:flex;
+            align-items:center;
 
-    margin-bottom:8px;
+            gap:14px;
 
-}
+            width:100%;
 
-.sidebar-menu a:hover{
+            text-decoration:none;
 
-    background:var(--sidebar-hover);
+            color:#cbd5e1;
 
-    color:white;
+            padding:14px 18px;
 
-    transform:translateX(6px);
+            border-radius:14px;
 
-}
+            font-weight:600;
 
-.sidebar-menu a.active{
+            margin-bottom:8px;
 
-    background:linear-gradient(
-    90deg,
-    var(--primary),
-    #4f46e5);
+        }
 
-    color:white;
 
-    box-shadow:
-    0 8px 20px rgba(37,99,235,.30);
+        .sidebar-menu a:hover {
 
-}
+            background:var(--sidebar-hover);
 
-.sidebar-menu i{
+            color:white;
 
-    font-size:18px;
+            transform:translateX(6px);
 
-}
+        }
 
-.admin-main{
 
-    flex:1;
+        .sidebar-menu a.active {
 
-    margin-left:270px;
+            background:linear-gradient(
+                90deg,
+                var(--primary),
+                #4f46e5
+            );
 
-}
+            color:white;
 
-.topbar{
+            box-shadow:
+                0 8px 20px rgba(37,99,235,.30);
 
-    height:82px;
+        }
 
-    background:white;
 
-    border-bottom:
-    1px solid var(--border);
+        .sidebar-menu i {
 
-    display:flex;
+            font-size:18px;
 
-    justify-content:space-between;
+        }
 
-    align-items:center;
 
-    padding:0 34px;
+        /*
+        |--------------------------------------------------------------------------
+        | Payroll section headings
+        |--------------------------------------------------------------------------
+        */
 
-    position:sticky;
+        .sidebar-section-title {
 
-    top:0;
+            color:#94a3b8;
 
-    z-index:100;
+            font-size:12px;
 
-}
+            text-transform:uppercase;
 
-.topbar h5{
+            font-weight:700;
 
-    font-weight:700;
+            letter-spacing:.08em;
 
-}
+            padding:12px 18px 7px;
 
-.content{
+        }
 
-    padding:34px;
 
-}
+        .sidebar-section-title.main {
 
-.card{
+            font-size:13px;
 
-    border:none;
+            color:#9ca3af;
 
-    border-radius:20px;
+            margin-top:5px;
 
-    background:white;
+        }
 
-    box-shadow:
-    0 8px 24px rgba(15,23,42,.05);
 
-}
+        .payroll-sub-link {
 
-.btn{
+            padding-left:22px !important;
 
-    border-radius:12px;
+        }
 
-    font-weight:600;
 
-    padding:.65rem 1.1rem;
+        .admin-main {
 
-}
+            flex:1;
 
-.table{
+            margin-left:270px;
 
-    vertical-align:middle;
+        }
 
-}
 
-.table thead{
+        .topbar {
 
-    background:#f8fafc;
+            height:82px;
 
-}
+            background:white;
 
-.form-control,
-.form-select{
+            border-bottom:
+                1px solid var(--border);
 
-    border-radius:12px;
+            display:flex;
 
-    border:1px solid var(--border);
+            justify-content:space-between;
 
-}
+            align-items:center;
 
-.form-control:focus,
-.form-select:focus{
+            padding:0 34px;
 
-    border-color:var(--primary);
+            position:sticky;
 
-    box-shadow:
-    0 0 0 .2rem rgba(37,99,235,.12);
+            top:0;
 
-}
+            z-index:100;
 
-.badge{
+        }
 
-    border-radius:8px;
 
-    padding:7px 10px;
+        .topbar h5 {
 
-}
+            font-weight:700;
 
-.mobile-menu-btn {
-    display: none;
-}
+        }
 
 
+        .content {
 
-@media(max-width:992px){
+            padding:34px;
 
-    html,
-    body{
-        width:100%;
-        max-width:100%;
-        overflow-x:hidden;
-    }
+        }
 
-    .admin-wrapper{
-        width:100%;
-        max-width:100%;
-        overflow-x:hidden;
-    }
 
-    .sidebar{
-        left:-270px;
-        width:270px;
-        max-width:270px;
-    }
+        .card {
 
-    .sidebar.mobile-open{
-        left:0 !important;
-        z-index:1050 !important;
-    }
+            border:none;
 
-    .mobile-menu-btn{
-        display:block;
-        border:none;
-        background:#f3f4f6;
-        font-size:24px;
-        width:44px;
-        height:44px;
-        min-width:44px;
-        border-radius:10px;
-        cursor:pointer;
-        margin-right:10px;
-    }
+            border-radius:20px;
 
-    .admin-header{
-    width:100% !important;
-    max-width:100% !important;
-    box-sizing:border-box;
-    overflow:hidden;
-    display:flex;
-    align-items:center;
-}
+            background:white;
 
-.admin-header > *{
-    min-width:0;
-}
+            box-shadow:
+                0 8px 24px rgba(15,23,42,.05);
 
-.admin-header h1,
-.admin-header h2,
-.admin-header h3{
-    min-width:0;
-    white-space:nowrap;
-}
+        }
 
-.admin-header .logout-btn{
-    flex-shrink:0;
-}
 
-    .admin-main{
-        margin-left:0 !important;
-        width:100% !important;
-        max-width:100% !important;
-        min-width:0 !important;
-        box-sizing:border-box;
-        overflow-x:hidden;
-    }
+        .btn {
 
-    .admin-main > *{
-        max-width:100%;
-        box-sizing:border-box;
-    }
+            border-radius:12px;
 
-    .table-responsive{
-        max-width:100%;
-        overflow-x:auto;
-        -webkit-overflow-scrolling:touch;
-    }
+            font-weight:600;
 
+            padding:.65rem 1.1rem;
 
+        }
 
 
-    .topbar{
-        width:100%;
-        max-width:100%;
-        padding:0 12px;
-        box-sizing:border-box;
-        overflow:hidden;
-    }
+        .table {
 
-    .topbar > div:first-of-type{
-        min-width:0;
-        flex:1;
-    }
+            vertical-align:middle;
 
-    .topbar > div:last-child{
-        gap:6px !important;
-        flex-shrink:0;
-    }
+        }
 
-    .topbar .btn-danger{
-        padding:.55rem .7rem;
-        white-space:nowrap;
-    }
-}
 
-</style>
+        .table thead {
+
+            background:#f8fafc;
+
+        }
+
+
+        .form-control,
+        .form-select {
+
+            border-radius:12px;
+
+            border:1px solid var(--border);
+
+        }
+
+
+        .form-control:focus,
+        .form-select:focus {
+
+            border-color:var(--primary);
+
+            box-shadow:
+                0 0 0 .2rem rgba(37,99,235,.12);
+
+        }
+
+
+        .badge {
+
+            border-radius:8px;
+
+            padding:7px 10px;
+
+        }
+
+
+        .mobile-menu-btn {
+
+            display:none;
+
+        }
+
+
+
+        @media(max-width:992px) {
+
+            html,
+            body {
+
+                width:100%;
+                max-width:100%;
+                overflow-x:hidden;
+
+            }
+
+
+            .admin-wrapper {
+
+                width:100%;
+                max-width:100%;
+                overflow-x:hidden;
+
+            }
+
+
+            .sidebar {
+
+                left:-270px;
+
+                width:270px;
+                max-width:270px;
+
+            }
+
+
+            .sidebar.mobile-open {
+
+                left:0 !important;
+                z-index:1050 !important;
+
+            }
+
+
+            .mobile-menu-btn {
+
+                display:block;
+
+                border:none;
+
+                background:#f3f4f6;
+
+                font-size:24px;
+
+                width:44px;
+                height:44px;
+                min-width:44px;
+
+                border-radius:10px;
+
+                cursor:pointer;
+
+                margin-right:10px;
+
+            }
+
+
+            .admin-header {
+
+                width:100% !important;
+                max-width:100% !important;
+
+                box-sizing:border-box;
+
+                overflow:hidden;
+
+                display:flex;
+                align-items:center;
+
+            }
+
+
+            .admin-header > * {
+
+                min-width:0;
+
+            }
+
+
+            .admin-header h1,
+            .admin-header h2,
+            .admin-header h3 {
+
+                min-width:0;
+                white-space:nowrap;
+
+            }
+
+
+            .admin-header .logout-btn {
+
+                flex-shrink:0;
+
+            }
+
+
+            .admin-main {
+
+                margin-left:0 !important;
+
+                width:100% !important;
+                max-width:100% !important;
+                min-width:0 !important;
+
+                box-sizing:border-box;
+
+                overflow-x:hidden;
+
+            }
+
+
+            .admin-main > * {
+
+                max-width:100%;
+
+                box-sizing:border-box;
+
+            }
+
+
+            .table-responsive {
+
+                max-width:100%;
+
+                overflow-x:auto;
+
+                -webkit-overflow-scrolling:touch;
+
+            }
+
+
+            .topbar {
+
+                width:100%;
+                max-width:100%;
+
+                padding:0 12px;
+
+                box-sizing:border-box;
+
+                overflow:hidden;
+
+            }
+
+
+            .topbar > div:first-of-type {
+
+                min-width:0;
+                flex:1;
+
+            }
+
+
+            .topbar > div:last-child {
+
+                gap:6px !important;
+
+                flex-shrink:0;
+
+            }
+
+
+            .topbar .btn-danger {
+
+                padding:.55rem .7rem;
+
+                white-space:nowrap;
+
+            }
+
+        }
+
+    </style>
 
 </head>
 
+
 <body>
+
 
 <div class="admin-wrapper">
 
-   <aside class="sidebar">
 
-    <div class="sidebar-brand text-center">
+    {{-- ============================================================
+         SIDEBAR
+    ============================================================ --}}
 
-        <div class="mb-3">
+        <aside
+            class="sidebar"
+            id="adminSidebar"
+        >
 
-            @if($appSetting?->company_logo)
+        {{-- COMPANY --}}
+        <div class="sidebar-brand text-center">
 
-    <img
-        src="{{ asset('storage/'.$appSetting->company_logo) }}"
-        alt="Company Logo"
-        style="
-            width:70px;
-            height:70px;
-            object-fit:contain;
-            background:white;
-            border-radius:18px;
-            padding:8px;
-            box-shadow:0 10px 25px rgba(37,99,235,.25);
-        ">
 
-@else
+            <div class="mb-3">
 
-    <div style="
-        width:70px;
-        height:70px;
-        border-radius:18px;
-        background:linear-gradient(135deg,#2563eb,#4f46e5);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        margin:auto;
-        font-size:30px;
-        color:white;
-        font-weight:bold;
-        box-shadow:0 10px 25px rgba(37,99,235,.25);
-    ">
-        J
-    </div>
+                @if($appSetting?->company_logo)
 
-@endif
+                    <img
+                        src="{{ asset('storage/'.$appSetting->company_logo) }}"
+                        alt="Company Logo"
+                        style="
+                            width:70px;
+                            height:70px;
+                            object-fit:contain;
+                            background:white;
+                            border-radius:18px;
+                            padding:8px;
+                            box-shadow:0 10px 25px rgba(37,99,235,.25);
+                        "
+                    >
 
-        </div>
+                @else
 
-        <h5 class="mb-1">
-    {{ $appSetting?->company_name ?: 'Junoxen PVT LTD' }}
-</h5>
+                    <div
+                        style="
+                            width:70px;
+                            height:70px;
+                            border-radius:18px;
+                            background:linear-gradient(
+                                135deg,
+                                #2563eb,
+                                #4f46e5
+                            );
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            margin:auto;
+                            font-size:30px;
+                            color:white;
+                            font-weight:bold;
+                            box-shadow:
+                                0 10px 25px rgba(37,99,235,.25);
+                        "
+                    >
+                        J
+                    </div>
 
-        <small class="text-white-50">
-            Employee Management
-        </small>
+                @endif
 
-    </div>
-
-    <div class="px-4 pt-3 pb-2">
-
-        <div class="rounded-4 p-3"
-             style="background:rgba(255,255,255,.06);">
-
-            <div class="fw-bold">
-                {{ auth()->user()->name }}
             </div>
+
+
+            <h5 class="mb-1">
+
+                {{
+                    $appSetting?->company_name
+                    ?: 'Junoxen PVT LTD'
+                }}
+
+            </h5>
+
 
             <small class="text-white-50">
 
-                {{ auth()->user()->role->name }}
+                Employee Management
 
             </small>
 
+
         </div>
 
-    </div>
 
-    <nav class="sidebar-menu mt-2">
 
-        {{-- Dashboard --}}
-<a href="
-@if(auth()->user()->role->name=='Admin')
-{{ route('dashboard') }}
-@elseif(auth()->user()->role->name=='Manager')
-{{ route('manager.dashboard') }}
-@else
-{{ route('employee.dashboard') }}
-@endif
-"
-class="
-@if(auth()->user()->role->name=='Employee')
-{{ request()->routeIs('employee.dashboard') ? 'active' : '' }}
-@elseif(auth()->user()->role->name=='Manager')
-{{ request()->routeIs('manager.dashboard') ? 'active' : '' }}
-@else
-{{ request()->routeIs('dashboard') ? 'active' : '' }}
-@endif
-">
+        {{-- LOGGED-IN USER --}}
+        <div class="px-4 pt-3 pb-2">
 
-    <i class="bi bi-speedometer2"></i>
+            <div
+                class="rounded-4 p-3"
+                style="
+                    background:
+                    rgba(255,255,255,.06);
+                "
+            >
 
-    Dashboard
+                <div class="fw-bold">
 
-</a>
+                    {{ auth()->user()->name }}
 
-@if(auth()->user()->role->name=='Employee')
+                </div>
 
-<a href="{{ route('employee.tasks.index') }}"
-   class="{{ request()->routeIs('employee.tasks.*') ? 'active' : '' }}">
 
-    <i class="bi bi-list-task"></i>
+                <small class="text-white-50">
 
-    My Tasks
+                    {{
+                        auth()->user()
+                            ->role
+                            ->name
+                    }}
 
-</a>
-
-<a href="{{ route('employee.payroll.index') }}"
-   class="{{ request()->routeIs('employee.payroll.*') ? 'active' : '' }}">
-    <i class="bi bi-receipt"></i>
-    My Payroll
-</a>
-
-<a href="{{ route('profile.edit') }}"
-   class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-
-    <i class="bi bi-person-circle"></i>
-
-    Profile
-
-</a>
-
-@endif
-
-        @if(auth()->user()->role->name=='Admin')
-
-        <a href="{{ route('departments.index') }}"
-           class="{{ request()->routeIs('departments.*') ? 'active' : '' }}">
-
-            <i class="bi bi-building"></i>
-
-            Departments
-
-        </a>
-
-        <a href="{{ route('employees.index') }}"
-           class="{{ request()->routeIs('employees.*') ? 'active' : '' }}">
-
-            <i class="bi bi-people-fill"></i>
-
-            Employees
-
-        </a>
-
-        <a href="{{ route('users.index') }}"
-   class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
-
-    <i class="bi bi-people-fill"></i>
-
-    Users
-
-</a>
-
-        <a href="{{ route('tasks.index') }}"
-           class="{{ request()->routeIs('tasks.*') ? 'active' : '' }}">
-
-            <i class="bi bi-list-check"></i>
-
-            Tasks
-
-        </a>
-
-        <hr class="border-secondary">
-
-        <div class="text-white-50 small text-uppercase px-3 pt-2 pb-1" style="letter-spacing:.08em;">Payroll Management</div>
-
-        <a href="{{ route('admin.payroll.dashboard') }}"
-           class="{{ request()->routeIs('admin.payroll.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer"></i>
-            Payroll Dashboard
-        </a>
-
-        <a href="{{ route('admin.payroll.create') }}"
-           class="{{ request()->routeIs('admin.payroll.create') ? 'active' : '' }}">
-            <i class="bi bi-file-earmark-plus"></i>
-            Generate Payroll
-        </a>
-
-        <a href="{{ route('admin.payroll.index') }}"
-           class="{{ request()->routeIs('admin.payroll.index') || request()->routeIs('admin.payroll.show') || request()->routeIs('admin.payroll.edit') ? 'active' : '' }}">
-            <i class="bi bi-receipt-cutoff"></i>
-            All Payrolls
-        </a>
-
-
-
-        <a href="{{ route('admin.payroll.reports') }}"
-           class="{{ request()->routeIs('admin.payroll.reports') ? 'active' : '' }}">
-            <i class="bi bi-bar-chart-line"></i>
-            Payroll Reports
-        </a>
-
-        <a href="{{ route('reports.index') }}"
-   class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
-
-    <i class="bi bi-bar-chart-line"></i>
-
-    Reports
-
-</a>
-
-<a href="{{ route('manager.activity.index') }}"
-   class="{{ request()->routeIs('manager.activity.*') ? 'active' : '' }}">
-
-    <i class="bi bi-activity"></i>
-
-    Manager Activity
-
-</a>
-
-<a href="{{ route('imports.index') }}"
-   class="{{ request()->routeIs('imports.*') ? 'active' : '' }}">
-
-    <i class="bi bi-file-earmark-arrow-up"></i>
-
-    Import To-Do List
-
-</a>
-
-        <a href="{{ route('settings.index') }}"
-   class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">
-
-    <i class="bi bi-gear"></i>
-
-    Settings
-
-</a>
-
-
-<a href="{{ route('profile.edit') }}"
-   class="{{ request()->routeIs('profile.*') ? 'active' : '' }}">
-
-    <i class="bi bi-person-circle"></i>
-
-    Profile
-
-</a>
-
-
-        @endif
-
-
-        @if(auth()->user()->role->name=='Manager')
-
-        <a href="{{ route('employees.index') }}"
-           class="{{ request()->routeIs('employees.*') ? 'active' : '' }}">
-
-            <i class="bi bi-people-fill"></i>
-
-            Employees
-
-        </a>
-
-
-
-       <a href="{{ route('tasks.index') }}"
-   class="{{ request()->routeIs('tasks.*') ? 'active' : '' }}">
-
-    <i class="bi bi-list-task"></i>
-
-    Assign Tasks
-
-</a>
-
-<a href="{{ route('manager.reviews.index') }}"
-   class="{{ request()->routeIs('manager.reviews.*') ? 'active' : '' }}">
-
-    <i class="bi bi-clipboard-check"></i>
-
-    Pending Reviews
-
-</a>
-
-<a href="{{ route('manager.reports.index') }}"
-   class="{{ request()->routeIs('manager.reports.*') ? 'active' : '' }}">
-
-    <i class="bi bi-bar-chart-line"></i>
-
-    Reports
-
-</a>
-
-<a href="{{ route('imports.index') }}"
-   class="{{ request()->routeIs('imports.*') ? 'active' : '' }}">
-
-    <i class="bi bi-file-earmark-arrow-up"></i>
-
-    Import To-Do List
-
-</a>
-
-<a href="{{ route('profile.edit') }}"
-   class="{{ request()->routeIs('profile.*') ? 'active' : '' }}">
-
-    <i class="bi bi-person-circle"></i>
-
-    Profile
-
-</a>
-
-        @endif
-
-    </nav>
-
-</aside>
-
-    <main class="admin-main">
-
-        <header class="topbar">
-
-    <button type="button" class="mobile-menu-btn" onclick="toggleSidebar()">
-        ☰
-    </button>
-
-    <div>
-        <h5 class="mb-0 fw-bold">
-            {{ $pageTitle ?? 'Dashboard' }}
-        </h5>
-
-                <small class="text-muted">
-                    Welcome, {{ auth()->user()->name }}
                 </small>
 
             </div>
 
-           <div class="d-flex align-items-center gap-3">
+        </div>
 
-    <a href="{{ route('notifications.index') }}"
-       class="btn btn-light position-relative">
 
-        <i class="bi bi-bell fs-5"></i>
 
-        @php
-            $unreadNotifications = auth()->user()
-                ->notifications()
-                ->where('is_read', false)
-                ->count();
-        @endphp
+        <nav class="sidebar-menu mt-2">
 
-        @if($unreadNotifications > 0)
 
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{-- ====================================================
+                 DASHBOARD
+            ===================================================== --}}
 
-                {{ $unreadNotifications }}
+            <a
+                href="
+                    @if(auth()->user()->role->name === 'Admin')
+                        {{ route('dashboard') }}
+                    @elseif(auth()->user()->role->name === 'Manager')
+                        {{ route('manager.dashboard') }}
+                    @else
+                        {{ route('employee.dashboard') }}
+                    @endif
+                "
 
-            </span>
+                class="
+                    @if(auth()->user()->role->name === 'Employee')
 
-        @endif
+                        {{
+                            request()->routeIs(
+                                'employee.dashboard'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
 
-    </a>
+                    @elseif(auth()->user()->role->name === 'Manager')
 
-    <form method="POST" action="{{ route('logout') }}">
+                        {{
+                            request()->routeIs(
+                                'manager.dashboard'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
 
-        @csrf
+                    @else
 
-        <button type="submit" class="btn btn-danger">
+                        {{
+                            request()->routeIs(
+                                'dashboard'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
 
-            Logout
+                    @endif
+                "
+            >
 
-        </button>
+                <i class="bi bi-speedometer2"></i>
 
-    </form>
+                Dashboard
 
-</div>
+            </a>
+
+
+
+           
+            {{-- ====================================================
+                 EMPLOYEE MENU
+            ===================================================== --}}
+            
+            @if(auth()->user()->role->name === 'Employee')
+            
+            
+                {{-- MY TASKS --}}
+                <a
+                    href="{{ route('employee.tasks.index') }}"
+                    class="{{
+                        request()->routeIs('employee.tasks.*')
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+            
+                    <i class="bi bi-list-task"></i>
+            
+                    My Tasks
+            
+                </a>
+            
+            
+                {{-- MY PAYROLL --}}
+                <a
+                    href="{{ route('employee.payroll.index') }}"
+                    class="{{
+                        request()->routeIs('employee.payroll.*')
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+            
+                    <i class="bi bi-receipt"></i>
+            
+                    My Payroll
+            
+                </a>
+            
+            
+                {{-- IT SUPPORT --}}
+                <a
+                    href="{{ route('employee.it-support.index') }}"
+                    class="{{
+                        request()->routeIs('employee.it-support.*')
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+            
+                    <i class="bi bi-headset"></i>
+            
+                    IT Support
+            
+                </a>
+            
+            
+                {{-- PROFILE --}}
+                <a
+                    href="{{ route('profile.edit') }}"
+                    class="{{
+                        request()->routeIs('profile.*')
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+            
+                    <i class="bi bi-person-circle"></i>
+            
+                    Profile
+            
+                </a>
+            
+            
+            @endif
+            {{-- ====================================================
+                 ADMIN MENU
+            ===================================================== --}}
+
+            @if(auth()->user()->role->name === 'Admin')
+
+
+                <a
+                    href="{{ route('departments.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'departments.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-building"></i>
+
+                    Departments
+
+                </a>
+
+
+                <a
+                    href="{{ route('employees.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'employees.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-people-fill"></i>
+
+                    Employees
+
+                </a>
+
+
+                <a
+                    href="{{ route('users.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'users.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-people-fill"></i>
+
+                    Users
+
+                </a>
+
+
+                <a
+                    href="{{ route('tasks.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'tasks.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-list-check"></i>
+
+                    Tasks
+
+                </a>
+				
+				<a
+    href="{{ route('reports.index') }}"
+    class="{{
+        request()->routeIs('reports.*')
+        ? 'active'
+        : ''
+    }}"
+>
+    <i class="bi bi-bar-chart-line"></i>
+    Reports
+</a>
+
+
+<a
+    href="{{ route('manager.activity.index') }}"
+    class="{{
+        request()->routeIs('manager.activity.*')
+        ? 'active'
+        : ''
+    }}"
+>
+    <i class="bi bi-activity"></i>
+    Manager Activity
+</a>
+
+
+<a
+    href="{{ route('imports.index') }}"
+    class="{{
+        request()->routeIs('imports.*')
+        ? 'active'
+        : ''
+    }}"
+>
+    <i class="bi bi-file-earmark-arrow-up"></i>
+    Import To-Do List
+</a>
+
+
+
+                {{-- =================================================
+                     PAYROLL MANAGEMENT
+                ================================================== --}}
+
+                <hr class="border-secondary">
+
+
+                <div
+                    class="
+                        sidebar-section-title
+                        main
+                    "
+                >
+                    Payroll Management
+                </div>
+
+
+
+                {{-- PAYROLL OVERVIEW --}}
+                <a
+                    href="{{
+                        route(
+                            'admin.payroll-management.index'
+                        )
+                    }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'admin.payroll-management.index'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-grid-1x2"></i>
+
+                    Payroll Overview
+
+                </a>
+
+
+
+                {{-- EMPLOYEE MANAGEMENT --}}
+                <div class="sidebar-section-title">
+
+                    Employee Management
+
+                </div>
+
+
+                <a
+                    href="{{
+                        route(
+                            'admin.payroll-management.employees.index'
+                        )
+                    }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll-management.employees.*'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-people"></i>
+
+                    Payroll Employees
+
+                </a>
+
+
+                <a
+                    href="{{
+                        route(
+                            'admin.payroll-management.leave.index'
+                        )
+                    }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll-management.leave.*'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-calendar2-check"></i>
+
+                    Leave
+
+                </a>
+
+
+                <a
+                    href="{{
+                        route(
+                            'admin.payroll-management.timesheets.index'
+                        )
+                    }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll-management.timesheets.*'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-clock-history"></i>
+
+                    Timesheets
+
+                </a>
+
+
+
+                {{-- PAYROLL PROCESSING --}}
+                <div class="sidebar-section-title">
+
+                    Payroll Processing
+
+                </div>
+
+
+                <a
+                    href="{{ route('admin.payroll.create') }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll.create'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-cash-coin"></i>
+
+                    Pay Employees
+
+                </a>
+
+
+                <a
+                    href="{{
+                        route(
+                            'admin.payroll-management.superannuation.index'
+                        )
+                    }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll-management.superannuation.*'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-piggy-bank"></i>
+
+                    Superannuation
+
+                </a>
+
+
+                <a
+                    href="{{
+                        route(
+                            'admin.payroll-management.stp.index'
+                        )
+                    }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll-management.stp.*'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-file-earmark-check"></i>
+
+                    Single Touch Payroll
+
+                </a>
+
+
+
+                {{-- ADMINISTRATION --}}
+                <div class="sidebar-section-title">
+
+                    Administration
+
+                </div>
+
+
+                <a
+                    href="{{ route('admin.payroll.index') }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll.index'
+                            )
+                            ||
+                            request()->routeIs(
+                                'admin.payroll.show'
+                            )
+                            ||
+                            request()->routeIs(
+                                'admin.payroll.edit'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-clock-history"></i>
+
+                    Payroll History
+
+                </a>
+
+
+                <a
+                    href="{{ route('admin.payroll.reports') }}"
+
+                    class="
+                        payroll-sub-link
+
+                        {{
+                            request()->routeIs(
+                                'admin.payroll.reports'
+                            )
+                            ? 'active'
+                            : ''
+                        }}
+                    "
+                >
+
+                    <i class="bi bi-bar-chart-line"></i>
+
+                    Payroll Reports
+
+                </a>
+
+
+
+                {{-- PAYROLL SETTINGS --}}
+                <a
+                    href="{{
+                        route(
+                            'admin.payroll-management.settings.index'
+                        )
+                    }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'admin.payroll-management.settings.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-gear"></i>
+
+                    Payroll Settings
+
+                </a>
+
+
+
+                {{-- =================================================
+                     IT SUPPORT
+                ================================================== --}}
+
+                <hr class="border-secondary">
+
+
+                <a
+                    href="{{ route('admin.it-support.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'admin.it-support.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-headset"></i>
+
+                    IT Support
+
+                </a>
+
+
+
+               
+                <a
+                    href="{{ route('settings.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'settings.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-gear"></i>
+
+                    Settings
+
+                </a>
+
+
+                <a
+                    href="{{ route('profile.edit') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'profile.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-person-circle"></i>
+
+                    Profile
+
+                </a>
+
+
+            @endif
+
+
+
+            {{-- ====================================================
+                 MANAGER MENU
+            ===================================================== --}}
+
+            @if(auth()->user()->role->name === 'Manager')
+
+
+                <a
+                    href="{{ route('employees.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'employees.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-people-fill"></i>
+
+                    Employees
+
+                </a>
+
+
+                <a
+                    href="{{ route('tasks.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'tasks.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-list-task"></i>
+
+                    Assign Tasks
+
+                </a>
+
+
+                <a
+                    href="{{ route('manager.reviews.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'manager.reviews.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-clipboard-check"></i>
+
+                    Pending Reviews
+
+                </a>
+
+
+                <a
+                    href="{{ route('manager.reports.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'manager.reports.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-bar-chart-line"></i>
+
+                    Reports
+
+                </a>
+
+
+                <a
+                    href="{{ route('imports.index') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'imports.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+
+                    Import To-Do List
+
+                </a>
+
+
+                <a
+                    href="{{ route('profile.edit') }}"
+
+                    class="{{
+                        request()->routeIs(
+                            'profile.*'
+                        )
+                        ? 'active'
+                        : ''
+                    }}"
+                >
+
+                    <i class="bi bi-person-circle"></i>
+
+                    Profile
+
+                </a>
+
+
+            @endif
+
+
+        </nav>
+
+    </aside>
+
+
+
+    {{-- ============================================================
+         MAIN AREA
+    ============================================================ --}}
+
+    <main class="admin-main">
+
+
+        <header class="topbar">
+
+
+            <button
+                type="button"
+                class="mobile-menu-btn"
+                onclick="toggleSidebar()"
+            >
+                ☰
+            </button>
+
+
+            <div>
+
+                <h5 class="mb-0 fw-bold">
+
+                    {{ $pageTitle ?? 'Dashboard' }}
+
+                </h5>
+
+
+                <small class="text-muted">
+
+                    Welcome,
+                    {{ auth()->user()->name }}
+
+                </small>
+
+            </div>
+
+
+
+            <div
+                class="
+                    d-flex
+                    align-items-center
+                    gap-3
+                "
+            >
+
+
+                {{-- NOTIFICATIONS --}}
+                <a
+                    href="{{ route('notifications.index') }}"
+                    class="
+                        btn
+                        btn-light
+                        position-relative
+                    "
+                >
+
+                    <i class="bi bi-bell fs-5"></i>
+
+
+                    @php
+
+                        $unreadNotifications =
+                            auth()->user()
+                                ->notifications()
+                                ->where(
+                                    'is_read',
+                                    false
+                                )
+                                ->count();
+
+                    @endphp
+
+
+                    @if($unreadNotifications > 0)
+
+                        <span
+                            class="
+                                position-absolute
+                                top-0
+                                start-100
+                                translate-middle
+                                badge
+                                rounded-pill
+                                bg-danger
+                            "
+                        >
+
+                            {{ $unreadNotifications }}
+
+                        </span>
+
+                    @endif
+
+                </a>
+
+
+
+                {{-- LOGOUT --}}
+                <form
+                    method="POST"
+                    action="{{ route('logout') }}"
+                >
+
+                    @csrf
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger"
+                    >
+
+                        Logout
+
+                    </button>
+
+                </form>
+
+
+            </div>
+
 
         </header>
 
+
+
         <section class="content">
 
+
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+
+                <div
+                    class="
+                        alert
+                        alert-success
+                        alert-dismissible
+                        fade
+                        show
+                    "
+                >
+
+                    {{ session('success') }}
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                    ></button>
+
+                </div>
+
             @endif
+
+
+
             @if(session('warning'))
-                <div class="alert alert-warning">{{ session('warning') }}</div>
+
+                <div class="alert alert-warning">
+
+                    {{ session('warning') }}
+
+                </div>
+
             @endif
+
+
+
             @if($errors->any())
-                <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+
+                <div class="alert alert-danger">
+
+                    <ul class="mb-0">
+
+                        @foreach($errors->all() as $error)
+
+                            <li>
+                                {{ $error }}
+                            </li>
+
+                        @endforeach
+
+                    </ul>
+
+                </div>
+
             @endif
+
+
 
             @yield('content')
 
+
         </section>
+
 
     </main>
 
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 @stack('scripts')
 
+
 <script>
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('mobile-open');
-}
+
+    function toggleSidebar() {
+
+        document
+            .querySelector('.sidebar')
+            .classList
+            .toggle('mobile-open');
+
+    }
+    
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const sidebar = document.getElementById('adminSidebar');
+
+        if (!sidebar) {
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Restore sidebar scroll position
+        |--------------------------------------------------------------------------
+        */
+
+        const savedScrollPosition =
+            sessionStorage.getItem(
+                'adminSidebarScrollPosition'
+            );
+
+        if (savedScrollPosition !== null) {
+
+            sidebar.scrollTop =
+                parseInt(
+                    savedScrollPosition,
+                    10
+                ) || 0;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Continuously remember current sidebar position
+        |--------------------------------------------------------------------------
+        */
+
+        sidebar.addEventListener(
+            'scroll',
+            function () {
+
+                sessionStorage.setItem(
+                    'adminSidebarScrollPosition',
+                    sidebar.scrollTop
+                );
+
+            }
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save position when a sidebar menu item is clicked
+        |--------------------------------------------------------------------------
+        */
+
+        const sidebarLinks =
+            sidebar.querySelectorAll('a');
+
+        sidebarLinks.forEach(function (link) {
+
+            link.addEventListener(
+                'click',
+                function () {
+
+                    sessionStorage.setItem(
+                        'adminSidebarScrollPosition',
+                        sidebar.scrollTop
+                    );
+
+                }
+            );
+
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save position before page navigation/reload
+        |--------------------------------------------------------------------------
+        */
+
+        window.addEventListener(
+            'beforeunload',
+            function () {
+
+                sessionStorage.setItem(
+                    'adminSidebarScrollPosition',
+                    sidebar.scrollTop
+                );
+
+            }
+        );
+
+    });
+
 </script>
+
 
 </body>
 </html>

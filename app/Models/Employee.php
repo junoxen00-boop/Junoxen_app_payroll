@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Employee extends Model
 {
@@ -25,6 +26,7 @@ class Employee extends Model
         'joining_date' => 'date',
     ];
 
+
     /**
      * Employee login account.
      */
@@ -32,6 +34,7 @@ class Employee extends Model
     {
         return $this->belongsTo(User::class);
     }
+
 
     /**
      * Employee belongs to a department.
@@ -41,27 +44,119 @@ class Employee extends Model
         return $this->belongsTo(Department::class);
     }
 
+
     /**
      * Employee has many task assignments.
      */
     public function taskAssignments(): HasMany
     {
-        return $this->hasMany(TaskAssignment::class, 'employee_id');
+        return $this->hasMany(
+            TaskAssignment::class,
+            'employee_id'
+        );
     }
 
+
     /**
-     * Employee belongs to many tasks through task_assignments.
+     * Employee salary structures.
      */
     public function salaryStructures(): HasMany
     {
-        return $this->hasMany(EmployeeSalaryStructure::class);
+        return $this->hasMany(
+            EmployeeSalaryStructure::class,
+            'employee_id'
+        );
     }
 
+
+    /**
+     * Employee payroll records.
+     */
     public function payrolls(): HasMany
     {
-        return $this->hasMany(Payroll::class);
+        return $this->hasMany(
+            Payroll::class,
+            'employee_id'
+        );
     }
 
+
+    /**
+     * Payroll-management profile.
+     */
+    public function payrollProfile(): HasOne
+    {
+        return $this->hasOne(
+            EmployeePayrollProfile::class,
+            'employee_id'
+        );
+    }
+
+
+    /**
+     * Employee leave records.
+     */
+    public function leaves(): HasMany
+    {
+        return $this->hasMany(
+            EmployeeLeave::class,
+            'employee_id'
+        );
+    }
+
+
+    /**
+     * Employee timesheet records.
+     */
+    public function timesheets(): HasMany
+    {
+        return $this->hasMany(
+            EmployeeTimesheet::class,
+            'employee_id'
+        );
+    }
+
+
+    /**
+     * Employee superannuation details.
+     */
+    public function superannuation(): HasOne
+    {
+        return $this->hasOne(
+            EmployeeSuperannuation::class,
+            'employee_id'
+        );
+    }
+
+
+    /**
+     * IT support tickets raised by this employee.
+     */
+    public function itSupportTickets(): HasMany
+    {
+        return $this->hasMany(
+            ItSupportTicket::class,
+            'employee_id'
+        );
+    }
+
+
+    /**
+     * IT support tickets assigned to this employee.
+     */
+    public function assignedItSupportTickets(): HasMany
+    {
+        return $this->hasMany(
+            ItSupportTicket::class,
+            'assigned_to'
+        );
+    }
+
+
+    /**
+     * Employee belongs to many tasks
+     * through task_assignments.
+     */
     public function tasks(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -69,16 +164,18 @@ class Employee extends Model
             'task_assignments',
             'employee_id',
             'task_id'
-        )->withPivot([
-            'status',
-            'progress',
-            'remarks',
-            'attachment',
-            'review_status',
-            'review_comment',
-            'reviewed_by',
-            'reviewed_at',
-            'completed_at',
-        ])->withTimestamps();
+        )
+            ->withPivot([
+                'status',
+                'progress',
+                'remarks',
+                'attachment',
+                'review_status',
+                'review_comment',
+                'reviewed_by',
+                'reviewed_at',
+                'completed_at',
+            ])
+            ->withTimestamps();
     }
 }

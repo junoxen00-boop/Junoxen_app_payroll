@@ -891,4 +891,9 @@ Route::middleware(
 */
 
 require __DIR__ .
+    '/it_support.php';
+    
+require __DIR__.'/payroll_management.php';
+
+require __DIR__ .
     '/auth.php';

@@ -176,6 +176,15 @@
                                             Edit
                                         </a>
 
+                                        @if(auth()->user()->role->name === 'Admin')
+                                            <a
+                                                href="{{ route('admin.payroll-management.employees.show', $employee) }}"
+                                                class="btn btn-sm btn-outline-success"
+                                            >
+                                                Payroll Card
+                                            </a>
+                                        @endif
+
    
 
                                         <form

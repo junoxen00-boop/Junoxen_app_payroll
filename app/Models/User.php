@@ -68,6 +68,21 @@ class User extends Authenticatable
         return $this->hasMany(Payroll::class, 'paid_by');
     }
 
+    public function assignedItSupportTickets(): HasMany
+    {
+        return $this->hasMany(ItSupportTicket::class, 'assigned_to_user_id');
+    }
+
+    public function resolvedItSupportTickets(): HasMany
+    {
+        return $this->hasMany(ItSupportTicket::class, 'resolved_by_user_id');
+    }
+
+    public function itSupportComments(): HasMany
+    {
+        return $this->hasMany(ItSupportTicketComment::class);
+    }
+
 public function notifications(): HasMany
 {
     return $this->hasMany(Notification::class)->latest();
