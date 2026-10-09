@@ -1048,7 +1048,29 @@
 
                 </a>
 
+                {{-- ATTENDANCE IMPORT --}}
+<a
+    href="{{
+        route(
+            'admin.payroll-management.attendance.index'
+        )
+    }}"
+    class="
+        payroll-sub-link
 
+        {{
+            request()->routeIs(
+                'admin.payroll-management.attendance.*'
+            )
+            ? 'active'
+            : ''
+        }}
+    "
+>
+    <i class="bi bi-file-earmark-spreadsheet"></i>
+
+    Attendance Import
+</a>
 
                 {{-- PAYROLL PROCESSING --}}
                 <div class="sidebar-section-title">

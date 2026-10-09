@@ -38,6 +38,7 @@
 
                     <select
                         name="employee_id"
+                        id="payrollEmployeeId"
                         class="form-select"
                         required
                     >
@@ -76,6 +77,7 @@
 
                     <select
                         name="payroll_month"
+                        id="payrollMonth"
                         class="form-select"
                         required
                     >
@@ -114,6 +116,7 @@
                     <input
                         type="number"
                         name="payroll_year"
+                        id="payrollYear"
                         min="2000"
                         max="2100"
                         class="form-control"
@@ -159,8 +162,7 @@
 
                 <i class="bi bi-shield-check me-2"></i>
 
-                Professional Tax, Provident Fund,
-                LOP Deduction, Total Deductions
+                Professional Tax, LOP Deduction, Attendance Deduction, Total Deductions
                 and Total Net Payable are calculated
                 securely on the server.
 
@@ -184,3 +186,62 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const employee = document.getElementById('payrollEmployeeId');
+    const month = document.getElementById('payrollMonth');
+    const year = document.getElementById('payrollYear');
+    const statusText = document.getElementById('attendanceStatusText');
+    const lateMinutes = document.getElementById('attendanceLateMinutes');
+    const deductionText = document.getElementById('attendanceDeductionText');
+
+    async function refreshAttendanceSummary() {
+        if (!employee?.value || !month?.value || !year?.value) {
+            return;
+        }
+
+        statusText.textContent = 'Checking attendance...';
+
+        const url = new URL(@json(route('admin.payroll-management.attendance.summary')), window.location.origin);
+        url.searchParams.set('employee_id', employee.value);
+        url.searchParams.set('payroll_month', month.value);
+        url.searchParams.set('payroll_year', year.value);
+
+        try {
+            const response = await fetch(url.toString(), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('Unable to load attendance summary');
+            }
+
+            const data = await response.json();
+            lateMinutes.textContent = data.late_minutes ?? 0;
+            deductionText.textContent = data.enabled
+                ? 'Calculated on Generate Payroll'
+                : 'Attendance payroll disabled';
+
+            if (!data.enabled) {
+                statusText.textContent = 'Attendance payroll disabled in Payroll Settings';
+            } else if (!data.imported) {
+                statusText.textContent = 'No confirmed attendance import for this employee/period';
+            } else if (!data.ready) {
+                statusText.textContent = `Needs review (${data.needs_review_count ?? 0} record(s))`;
+            } else {
+                statusText.textContent = `Ready · ${data.days_imported} day(s) imported · ${data.deductible_minutes} deductible minute(s)`;
+            }
+        } catch (error) {
+            statusText.textContent = 'Attendance summary unavailable';
+        }
+    }
+
+    employee?.addEventListener('change', refreshAttendanceSummary);
+    month?.addEventListener('change', refreshAttendanceSummary);
+    year?.addEventListener('change', refreshAttendanceSummary);
+    refreshAttendanceSummary();
+});
+</script>
+@endpush

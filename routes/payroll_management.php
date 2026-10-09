@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PayrollTimesheetController;
 use App\Http\Controllers\Admin\PayrollSuperannuationController;
 use App\Http\Controllers\Admin\PayrollStpController;
 use App\Http\Controllers\Admin\PayrollManagementSettingsController;
+use App\Http\Controllers\Admin\AttendanceImportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -71,6 +72,43 @@ Route::middleware([
             '/leave/{leave}',
             [PayrollLeaveController::class, 'destroy']
         )->name('leave.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Attendance Import
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/attendance',
+            [AttendanceImportController::class, 'index']
+        )->name('attendance.index');
+
+        Route::post(
+            '/attendance',
+            [AttendanceImportController::class, 'store']
+        )->name('attendance.store');
+
+        Route::get(
+            '/attendance/summary',
+            [AttendanceImportController::class, 'summary']
+        )->name('attendance.summary');
+
+        Route::get(
+            '/attendance/{attendanceImport}',
+            [AttendanceImportController::class, 'show']
+        )->name('attendance.show');
+
+        Route::post(
+            '/attendance/{attendanceImport}/confirm',
+            [AttendanceImportController::class, 'confirm']
+        )->name('attendance.confirm');
+
+        Route::put(
+            '/attendance-records/{attendanceDailyRecord}',
+            [AttendanceImportController::class, 'updateRecord']
+        )->name('attendance.records.update');
 
 
         /*
@@ -140,7 +178,7 @@ Route::middleware([
             [PayrollManagementSettingsController::class, 'index']
         )->name('settings.index');
 
-        Route::post(
+        Route::put(
             '/settings',
             [PayrollManagementSettingsController::class, 'update']
         )->name('settings.update');

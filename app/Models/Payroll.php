@@ -61,6 +61,12 @@ class Payroll extends Model
 
         'paid_days',
 
+        'attendance_import_id',
+
+        'attendance_late_minutes',
+
+        'attendance_deduction',
+
         'esi_deduction',
 
         'tds',
@@ -118,6 +124,12 @@ class Payroll extends Model
                 'decimal:2',
 
             'paid_days' =>
+                'decimal:2',
+
+            'attendance_late_minutes' =>
+                'integer',
+
+            'attendance_deduction' =>
                 'decimal:2',
 
             /*
@@ -201,6 +213,13 @@ class Payroll extends Model
     {
         return $this->belongsTo(
             Employee::class
+        );
+    }
+
+    public function attendanceImport(): BelongsTo
+    {
+        return $this->belongsTo(
+            AttendanceImport::class
         );
     }
 

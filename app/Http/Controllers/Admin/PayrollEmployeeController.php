@@ -52,6 +52,10 @@ class PayrollEmployeeController extends Controller
 
     public function update(Request $request, Employee $employee): RedirectResponse
     {
+        $employeeData = $request->validate([
+            'attendance_employee_id' => ['nullable', 'string', 'max:80', 'unique:employees,attendance_employee_id,' . $employee->id],
+        ]);
+
         $data = $request->validate([
             'employment_type' => ['nullable', 'string', 'max:80'],
             'payroll_status' => ['required', 'in:Active,Inactive,On Hold'],
@@ -67,6 +71,8 @@ class PayrollEmployeeController extends Controller
             'routing_identifier' => ['nullable', 'string', 'max:255'],
             'bank_branch' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $employee->update($employeeData);
 
         $data['default_basic_salary'] = $data['default_basic_salary'] ?? 0;
         $data['default_bonus'] = $data['default_bonus'] ?? 0;

@@ -13,6 +13,7 @@ class Employee extends Model
     protected $fillable = [
         'user_id',
         'employee_id',
+        'attendance_employee_id',
         'full_name',
         'email',
         'mobile_number',
@@ -112,6 +113,18 @@ class Employee extends Model
     {
         return $this->hasMany(
             EmployeeTimesheet::class,
+            'employee_id'
+        );
+    }
+
+
+    /**
+     * Imported daily attendance records.
+     */
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(
+            AttendanceDailyRecord::class,
             'employee_id'
         );
     }

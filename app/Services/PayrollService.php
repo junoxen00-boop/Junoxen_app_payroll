@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Employee;
+use App\Models\EmployeeLeave;
 use App\Models\Payroll;
 use App\Models\PayrollAuditLog;
 use App\Models\PayrollPayment;
@@ -14,7 +15,8 @@ use Illuminate\Validation\ValidationException;
 class PayrollService
 {
     public function __construct(
-        private PayrollStatutoryService $statutoryService
+        private PayrollStatutoryService $statutoryService,
+        private AttendanceImportService $attendanceImportService
     ) {
     }
 
@@ -24,7 +26,8 @@ class PayrollService
     public function calculate(
         array $input,
         int $month,
-        int $year
+        int $year,
+        ?Employee $employee = null
     ): array {
         $period = Carbon::create(
             $year,
@@ -155,6 +158,86 @@ class PayrollService
 
         /*
         |--------------------------------------------------------------------------
+        | Attendance deduction
+        |--------------------------------------------------------------------------
+        |
+        | Attendance is a separate payroll deduction. It is only applied when the
+        | attendance payroll policy is enabled and a confirmed, fully reviewed
+        | import exists for this employee and payroll period.
+        |
+        */
+
+        $attendanceImportId = null;
+        $attendanceLateMinutes = 0;
+        $attendanceDeductibleMinutes = 0;
+        $attendanceDeduction = 0;
+
+        if ($employee) {
+            $attendanceSummary =
+                $this->attendanceImportService
+                    ->payrollSummary(
+                        $employee,
+                        $month,
+                        $year
+                    );
+
+            if ($attendanceSummary['enabled']) {
+                if (! $attendanceSummary['imported']) {
+                    throw ValidationException::withMessages([
+                        'employee_id' =>
+                            'Attendance payroll is enabled, but no confirmed attendance import exists for this employee and payroll period.',
+                    ]);
+                }
+
+                if (! $attendanceSummary['ready']) {
+                    throw ValidationException::withMessages([
+                        'employee_id' =>
+                            'Attendance contains records that still need review. Resolve them before generating or recalculating payroll.',
+                    ]);
+                }
+
+                $attendanceImportId =
+                    $attendanceSummary['import_id'];
+
+                $attendanceLateMinutes =
+                    (int) $attendanceSummary['late_minutes'];
+
+                $attendanceDeductibleMinutes =
+                    (int) $attendanceSummary['deductible_minutes'];
+
+                $attendanceSettings =
+                    $this->attendanceImportService
+                        ->settings();
+
+                $standardMinutes =
+                    max(
+                        1,
+                        (int) $attendanceSettings
+                            ->standard_work_minutes_per_day
+                    );
+
+                $denominator =
+                    $daysInMonth
+                    * $standardMinutes;
+
+                $attendanceDeduction =
+                    intdiv(
+                        (
+                            $basicSalary
+                            * $attendanceDeductibleMinutes
+                        )
+                        + intdiv(
+                            $denominator,
+                            2
+                        ),
+                        $denominator
+                    );
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
         | PROVIDENT FUND DISABLED
         |--------------------------------------------------------------------------
         |
@@ -183,13 +266,14 @@ class PayrollService
         | Total Deductions
         |--------------------------------------------------------------------------
         |
-        | PF is deliberately excluded.
+        | PF is deliberately excluded. Attendance deduction is included when enabled.
         |
         */
 
         $totalDeductions =
             $professionalTax
-            + $lopDeduction;
+            + $lopDeduction
+            + $attendanceDeduction;
 
 
         /*
@@ -275,6 +359,17 @@ class PayrollService
             'paid_days' =>
                 $this->fromHundredths(
                     $paidDaysHundredths
+                ),
+
+            'attendance_import_id' =>
+                $attendanceImportId,
+
+            'attendance_late_minutes' =>
+                $attendanceLateMinutes,
+
+            'attendance_deduction' =>
+                $this->fromCents(
+                    $attendanceDeduction
                 ),
 
             /*
@@ -391,11 +486,28 @@ class PayrollService
                 }
 
 
+                $leaveTotals =
+                    $this->approvedLeaveTotals(
+                        $employee,
+                        $month,
+                        $year
+                    );
+
+                if ($leaveTotals !== null) {
+                    $input['leave_days'] =
+                        $leaveTotals['leave_days'];
+
+                    $input['lop_days'] =
+                        $leaveTotals['lop_days'];
+                }
+
+
                 $calculated =
                     $this->calculate(
                         $input,
                         $month,
-                        $year
+                        $year,
+                        $employee
                     );
 
 
@@ -540,13 +652,30 @@ class PayrollService
                         : ($payroll->lop_days ?? 0);
 
 
+                $leaveTotals =
+                    $this->approvedLeaveTotals(
+                        $payroll->employee,
+                        (int) $payroll->payroll_month,
+                        (int) $payroll->payroll_year
+                    );
+
+                if ($leaveTotals !== null) {
+                    $input['leave_days'] =
+                        $leaveTotals['leave_days'];
+
+                    $input['lop_days'] =
+                        $leaveTotals['lop_days'];
+                }
+
+
                 $calculated =
                     $this->calculate(
                         $input,
                         (int)
                         $payroll->payroll_month,
                         (int)
-                        $payroll->payroll_year
+                        $payroll->payroll_year,
+                        $payroll->employee
                     );
 
 
@@ -750,6 +879,67 @@ class PayrollService
             $month,
             $sequence
         );
+    }
+
+
+    /**
+     * Use approved leave records as the authoritative leave source when they
+     * exist for the selected payroll month. Paid leave contributes only to
+     * Leave Days; unpaid leave contributes to both Leave Days and LOP Days.
+     */
+    private function approvedLeaveTotals(
+        Employee $employee,
+        int $month,
+        int $year
+    ): ?array {
+        $periodStart =
+            Carbon::create($year, $month, 1)
+                ->startOfMonth();
+
+        $periodEnd =
+            $periodStart
+                ->copy()
+                ->endOfMonth();
+
+        $leaves =
+            EmployeeLeave::query()
+                ->where('employee_id', $employee->id)
+                ->where('status', 'Approved')
+                ->whereDate('start_date', '<=', $periodEnd)
+                ->whereDate('end_date', '>=', $periodStart)
+                ->get();
+
+        if ($leaves->isEmpty()) {
+            return null;
+        }
+
+        $leaveHundredths = 0;
+        $lopHundredths = 0;
+
+        foreach ($leaves as $leave) {
+            $days =
+                $this->toHundredths(
+                    $leave->leave_days
+                );
+
+            $leaveHundredths += $days;
+
+            if (! $leave->is_paid) {
+                $lopHundredths += $days;
+            }
+        }
+
+        return [
+            'leave_days' =>
+                $this->fromHundredths(
+                    $leaveHundredths
+                ),
+
+            'lop_days' =>
+                $this->fromHundredths(
+                    $lopHundredths
+                ),
+        ];
     }
 
 
